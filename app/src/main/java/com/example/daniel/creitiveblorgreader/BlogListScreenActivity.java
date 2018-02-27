@@ -8,7 +8,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,11 +27,10 @@ import java.util.Base64;
 public class BlogListScreenActivity extends AppCompatActivity {
 
 
-    HttpURLConnection httpURLConnection;
-    ArrayList<String> titles = new ArrayList<>();
-    ArrayList<String> descriptions = new ArrayList<>();
+    private HttpURLConnection httpURLConnection;
+    private ArrayList<BlogItem> blogItemArrayList;
+    ListView listView;
 
-    ArrayAdapter arrayAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,10 +41,18 @@ public class BlogListScreenActivity extends AppCompatActivity {
         if (actionBar != null) {
             actionBar.setTitle("Blog List");
         }
+        blogItemArrayList = new ArrayList<>();
+         listView = findViewById(R.id.listView);
+
 
         new DownloadTask().execute();
 
-        ListView listView = findViewById(R.id.listView);
+
+
+
+
+
+
 
 
     }
@@ -67,19 +76,25 @@ public class BlogListScreenActivity extends AppCompatActivity {
                 httpURLConnection.setRequestProperty("X-Authorize", token);
                 httpURLConnection.setDoInput(true);
 
-                BufferedReader in=new BufferedReader(
-                        new InputStreamReader(
-                                httpURLConnection.getInputStream()));
-                StringBuilder sb = new StringBuilder("");
-                String line="";
+                if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
-                while((line = in.readLine()) != null) {
-                    sb.append(line);
+                    BufferedReader in = new BufferedReader(
+                            new InputStreamReader(
+                                    httpURLConnection.getInputStream()));
+                    StringBuilder sb = new StringBuilder("");
+                    String line = "";
+
+                    while ((line = in.readLine()) != null) {
+                        sb.append(line);
+                    }
+
+                    in.close();
+                    return sb.toString();
+                } else{
+
+                    Toast.makeText(BlogListScreenActivity.this, "Can not fetch the articles. Error code: " + httpURLConnection.getResponseCode(), Toast.LENGTH_SHORT).show();
+                    return null;
                 }
-
-                in.close();
-                return sb.toString();
-
 
             } catch (MalformedURLException e) {
 
@@ -93,6 +108,38 @@ public class BlogListScreenActivity extends AppCompatActivity {
             }
 
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+
+            if(result != null){
+
+
+                try {
+
+                    JSONArray array = new JSONArray(result);
+                    for (int i = 0; i <array.length() ; i++) {
+
+                        JSONObject jsonObject = array.getJSONObject(i);
+
+                      BlogItem blogItem =  new BlogItem(jsonObject.getInt("id"), jsonObject.getString("title"),
+                                jsonObject.getString("description"),jsonObject.getString("image_url") );
+                        blogItemArrayList.add(blogItem);
+
+                    }
+                    BlogItemAdapter adapter = new BlogItemAdapter(BlogListScreenActivity.this, blogItemArrayList, R.layout.list_item_layout);
+                    listView.setAdapter(adapter);
+
+
+
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
         }
     }
 

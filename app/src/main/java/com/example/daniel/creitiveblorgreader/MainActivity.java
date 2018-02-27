@@ -189,12 +189,12 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     in.close();
-                    Log.i("RESPONSE", sb.toString());
+
                     return sb.toString(); //ovde vraca TOKEN
 
                 }
                 else {
-                    Log.i("RESPONSE", String.valueOf(responseCode));
+
                     return "false : "+responseCode;
 
                 }
