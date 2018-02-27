@@ -1,8 +1,12 @@
 package com.example.daniel.creitiveblorgreader;
 
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Patterns;
+
 import android.view.View;
 import android.widget.EditText;
 
@@ -37,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
             passwordEditText.setError("Invalid password. Password should be longer than 6 characters");
         }
 
+        checkInternetConnection();
 
     }
 
@@ -52,5 +57,43 @@ public class MainActivity extends AppCompatActivity {
     private boolean isPasswordValid(String password){
 
         return password != null && password.length() > 6;
+    }
+
+    private void checkInternetConnection(){
+
+        if(InternetStatus.getInstance(getApplicationContext()).isOnline()){
+
+            //send POST Request and open new Activity
+        }else{
+
+            showEnableInternetDialog();
+        }
+
+    }
+
+    private void showEnableInternetDialog(){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Connect to wifi, mobile data or quit")
+                .setCancelable(false)
+                .setNegativeButton("Connect to mobile data", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startActivity(new Intent(Settings.ACTION_DATA_ROAMING_SETTINGS));
+                    }
+                })
+                .setPositiveButton("Connect to WIFI", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                    }
+                })
+                .setNeutralButton("Quit", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        finish();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+
     }
 }
