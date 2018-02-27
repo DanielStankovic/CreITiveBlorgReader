@@ -1,9 +1,12 @@
 package com.example.daniel.creitiveblorgreader;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.provider.Settings;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -21,12 +24,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,17 +37,29 @@ public class MainActivity extends AppCompatActivity {
     EditText passwordEditText;
     String email;
     String password;
-
     HttpURLConnection httpURLConnection;
+    SharedPreferences settings;
+    String token;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        settings = this.getSharedPreferences("com.example.daniel.creitiveblorgreader", Context.MODE_PRIVATE);
+        token = settings.getString("token", "");
+        if(token.matches("eaf57e2cb62755db708144c93b1f319dcda89871")){
+            showBlogListScreenActivity();
+            this.finish();
+
+        }
 
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle("Login");
+        }
 
 
     }
@@ -206,12 +218,35 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
 
+            try {
+
+                JSONObject jsonObject = new JSONObject(result);
+                 token = jsonObject.getString("token");
+
+                if(token.matches("eaf57e2cb62755db708144c93b1f319dcda89871")) {
+                    settings.edit().putString("token", token).apply();
+                    showBlogListScreenActivity();
+
+                }
+
+            } catch (JSONException e) {
+
+                e.printStackTrace();
+
+            }
 
         }
     }
 
-   
+
+    private void showBlogListScreenActivity(){
+
+        Intent intent = new Intent(this, BlogListScreenActivity.class);
+        intent.putExtra("token_value", token);
+        startActivity(intent);
+
+    }
 }
