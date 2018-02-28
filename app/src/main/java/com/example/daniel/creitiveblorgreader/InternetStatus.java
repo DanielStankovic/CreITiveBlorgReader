@@ -11,7 +11,7 @@ import android.widget.Toast;
 
     static Context context;
 
-     private ConnectivityManager connectivityManager;
+
 
     private static InternetStatus instance = new InternetStatus();
     private boolean isConnected = false;
@@ -22,6 +22,7 @@ import android.widget.Toast;
     }
 
      boolean isOnline() {
+         ConnectivityManager connectivityManager;
         try {
             connectivityManager = (ConnectivityManager) context
                     .getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -40,4 +41,7 @@ import android.widget.Toast;
         }
         return isConnected;
     }
+
+
+
 }

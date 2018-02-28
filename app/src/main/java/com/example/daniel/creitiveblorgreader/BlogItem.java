@@ -40,17 +40,13 @@ public class BlogItem {
         return description;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+
 
     public String getImageUri() {
         return imageUri;
     }
 
-    public void setImageUri(String imageUrl) {
-        this.imageUri = imageUrl;
-    }
+
 
 
 }
