@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_top"
         android:hint="@string/login_hint_email"
-        android:inputType="textEmailAddress"/>
+        android:inputType="textEmailAddress" />
 
     <EditText
         android:id="@+id/passwordEditText"
@@ -22,17 +22,16 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_top"
         android:hint="@string/login_hint_pass"
-        android:inputType="textPassword"
-        />
+        android:inputType="textPassword" />
 
     <Button
         android:id="@+id/button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_top"
-        android:textColor="@color/colorPrimary"
+        android:onClick="loginUser"
         android:text="@string/login_button_text"
-        android:onClick="loginUser"/>
+        android:textColor="@color/colorPrimary" />
 
 
 </LinearLayout>

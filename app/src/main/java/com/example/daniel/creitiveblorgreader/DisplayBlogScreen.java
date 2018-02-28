@@ -25,10 +25,10 @@ import java.net.URL;
 
 public class DisplayBlogScreen extends AppCompatActivity {
 
-   HttpURLConnection httpURLConnection;
-    WebView webView;
-    DownloadTask task;
-    boolean connectedThroughDialog = false;
+    private HttpURLConnection httpURLConnection;
+    private WebView webView;
+    private DownloadTask task;
+    private boolean connectedThroughDialog = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +45,7 @@ public class DisplayBlogScreen extends AppCompatActivity {
         webView.getSettings().setUseWideViewPort(true);
         webView.setWebViewClient(new WebViewClient());
 
-        if(!InternetStatus.getInstance(getApplicationContext()).isOnline()){
+        if (!InternetStatus.getInstance(getApplicationContext()).isOnline()) {
             showEnableInternetDialog();
         } else {
             task = new DownloadTask();
@@ -53,14 +53,13 @@ public class DisplayBlogScreen extends AppCompatActivity {
         }
 
 
-
     }
 
     protected void onResume() {
         super.onResume();
-        if(InternetStatus.getInstance(getApplicationContext()).isOnline() && connectedThroughDialog) {
+        if (InternetStatus.getInstance(getApplicationContext()).isOnline() && connectedThroughDialog) {
 
-            if(task != null){
+            if (task != null) {
                 task.cancel(true);
             }
             connectedThroughDialog = false;
@@ -80,7 +79,7 @@ public class DisplayBlogScreen extends AppCompatActivity {
                 String token = intent.getStringExtra("token_value");
                 int articleId = intent.getIntExtra("article_id", 0);
 
-                URL url = new URL("http://blogsdemo.creitiveapps.com/blogs/"+String.valueOf(articleId));
+                URL url = new URL("http://blogsdemo.creitiveapps.com/blogs/" + String.valueOf(articleId));
 
                 httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setRequestMethod("GET");
@@ -105,17 +104,19 @@ public class DisplayBlogScreen extends AppCompatActivity {
                     return sb.toString();
                 } else {
 
-                    Toast.makeText(DisplayBlogScreen.this, "Can not fetch the articles. Error code: " + httpURLConnection.getResponseCode(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(DisplayBlogScreen.this, "Can not fetch the article. Error code: " + String.valueOf(httpURLConnection.getResponseCode()), Toast.LENGTH_SHORT).show();
                     return null;
                 }
 
             } catch (MalformedURLException e) {
 
-                e.printStackTrace();
+                Toast.makeText(DisplayBlogScreen.this, "There is a problem with requested URL. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
 
             } catch (IOException e) {
 
-                e.printStackTrace();
+                Toast.makeText(DisplayBlogScreen.this, "There is a problem. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
             } finally {
                 httpURLConnection.disconnect();
             }
@@ -128,7 +129,7 @@ public class DisplayBlogScreen extends AppCompatActivity {
             super.onPostExecute(result);
 
 
-            if(result != null){
+            if (result != null) {
 
                 try {
 
@@ -139,14 +140,15 @@ public class DisplayBlogScreen extends AppCompatActivity {
 
                 } catch (JSONException e) {
 
-                    e.printStackTrace();
+                    Toast.makeText(DisplayBlogScreen.this, "There is a problem with fetched results. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
                 }
 
-                 }
+            }
         }
     }
 
-    private void showEnableInternetDialog(){
+    private void showEnableInternetDialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Connect to wifi, mobile data or quit")

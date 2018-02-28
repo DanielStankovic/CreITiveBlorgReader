@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.daniel.creitiveblorgreader.DisplayBlogScreen"
-    android:padding="3dp">
+    android:padding="3dp"
+    tools:context="com.example.daniel.creitiveblorgreader.DisplayBlogScreen">
 
 
     <WebView

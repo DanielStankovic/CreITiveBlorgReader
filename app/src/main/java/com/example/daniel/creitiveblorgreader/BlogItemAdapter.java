@@ -19,18 +19,15 @@ import com.bumptech.glide.Glide;
 
 import java.util.List;
 
-public class BlogItemAdapter extends ArrayAdapter<BlogItem> {
+class BlogItemAdapter extends ArrayAdapter<BlogItem> {
 
     private Context context;
     private List<BlogItem> blogItemList;
     private int resourceId;
 
 
-
-
-
     public BlogItemAdapter(@NonNull Context context, List<BlogItem> blogItemList, int resourceId) {
-        super(context,resourceId, blogItemList);
+        super(context, resourceId, blogItemList);
         this.context = context;
         this.blogItemList = blogItemList;
         this.resourceId = resourceId;
@@ -58,9 +55,9 @@ public class BlogItemAdapter extends ArrayAdapter<BlogItem> {
         View row = convertView;
         ItemHolder holder;
 
-        if(row == null){
+        if (row == null) {
 
-            LayoutInflater layoutInflater = ((Activity)context).getLayoutInflater();
+            LayoutInflater layoutInflater = ((Activity) context).getLayoutInflater();
             row = layoutInflater.inflate(resourceId, parent, false);
 
             holder = new ItemHolder();
@@ -71,7 +68,7 @@ public class BlogItemAdapter extends ArrayAdapter<BlogItem> {
 
             row.setTag(holder);
 
-        }else{
+        } else {
 
             holder = (ItemHolder) row.getTag();
 
@@ -85,13 +82,13 @@ public class BlogItemAdapter extends ArrayAdapter<BlogItem> {
         Glide.with(row).load(Uri.parse(blogItem.getImageUri())).into(holder.imageView);
 
         String descriptionFromJson = blogItem.getDescription();
-        String description = descriptionFromJson.substring(descriptionFromJson.indexOf(">") +1);
+        String description = descriptionFromJson.substring(descriptionFromJson.indexOf(">") + 1);
         holder.descriptionTextView.setText(description);
 
         return row;
     }
 
-    private static class ItemHolder{
+    private static class ItemHolder {
 
         TextView titleTextView;
         ImageView imageView;

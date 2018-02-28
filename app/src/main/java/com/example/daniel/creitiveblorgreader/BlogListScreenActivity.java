@@ -13,9 +13,12 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
+
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -31,10 +34,10 @@ public class BlogListScreenActivity extends AppCompatActivity {
     private HttpURLConnection httpURLConnection;
     private List<BlogItem> blogItemArrayList;
     private List<Integer> articleIdsList;
-    ListView listView;
-    String token;
-    DownloadTask task;
-    boolean connectedThroughDialog = false;
+    private ListView listView;
+    private String token;
+    private DownloadTask task;
+    private boolean connectedThroughDialog = false;
 
 
     @Override
@@ -43,21 +46,20 @@ public class BlogListScreenActivity extends AppCompatActivity {
         setContentView(R.layout.activity_blog_list_screen);
 
 
-
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setTitle("Blog List");
         }
         blogItemArrayList = new ArrayList<>();
         articleIdsList = new ArrayList<>();
-         listView = findViewById(R.id.listView);
+        listView = findViewById(R.id.listView);
 
-         if(!InternetStatus.getInstance(getApplicationContext()).isOnline()){
-             showEnableInternetDialog();
-         } else {
-             task = new DownloadTask();
-             task.execute();
-         }
+        if (!InternetStatus.getInstance(getApplicationContext()).isOnline()) {
+            showEnableInternetDialog();
+        } else {
+            task = new DownloadTask();
+            task.execute();
+        }
 
 
         BlogItemAdapter adapter = new BlogItemAdapter(BlogListScreenActivity.this, blogItemArrayList, R.layout.list_item_layout);
@@ -69,10 +71,10 @@ public class BlogListScreenActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
 
-                    Intent intent = new Intent(BlogListScreenActivity.this, DisplayBlogScreen.class);
-                    intent.putExtra("token_value", token);
-                    intent.putExtra("article_id", articleIdsList.get(position));
-                    startActivity(intent);
+                Intent intent = new Intent(BlogListScreenActivity.this, DisplayBlogScreen.class);
+                intent.putExtra("token_value", token);
+                intent.putExtra("article_id", articleIdsList.get(position));
+                startActivity(intent);
 
             }
         });
@@ -83,9 +85,9 @@ public class BlogListScreenActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if(InternetStatus.getInstance(getApplicationContext()).isOnline() && connectedThroughDialog) {
+        if (InternetStatus.getInstance(getApplicationContext()).isOnline() && connectedThroughDialog) {
 
-            if(task != null){
+            if (task != null) {
                 task.cancel(true);
             }
             connectedThroughDialog = false;
@@ -94,7 +96,7 @@ public class BlogListScreenActivity extends AppCompatActivity {
         }
     }
 
-    private class DownloadTask extends AsyncTask<String, Void, String>{
+    private class DownloadTask extends AsyncTask<String, Void, String> {
 
 
         @Override
@@ -113,7 +115,7 @@ public class BlogListScreenActivity extends AppCompatActivity {
                 httpURLConnection.setRequestProperty("X-Authorize", token);
                 httpURLConnection.setDoInput(true);
 
-                if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                if (httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
 
                     BufferedReader in = new BufferedReader(
                             new InputStreamReader(
@@ -127,20 +129,23 @@ public class BlogListScreenActivity extends AppCompatActivity {
 
                     in.close();
                     return sb.toString();
-                } else{
+                } else {
 
-                    Toast.makeText(BlogListScreenActivity.this, "Can not fetch the articles. Error code: " + httpURLConnection.getResponseCode(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(BlogListScreenActivity.this, "Can not fetch articles. Error code: " + String.valueOf(httpURLConnection.getResponseCode()), Toast.LENGTH_SHORT).show();
                     return null;
                 }
 
             } catch (MalformedURLException e) {
 
-                e.printStackTrace();
+                Toast.makeText(BlogListScreenActivity.this, "There is a problem with requested URL. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
 
             } catch (IOException e) {
 
-                e.printStackTrace();
-            }  finally {
+                Toast.makeText(BlogListScreenActivity.this, "There is a problem. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+
+            } finally {
                 httpURLConnection.disconnect();
             }
 
@@ -151,32 +156,34 @@ public class BlogListScreenActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
 
-            if(result != null){
+            if (result != null) {
 
                 try {
 
                     JSONArray array = new JSONArray(result);
-                    for (int i = 0; i <array.length() ; i++) {
+                    for (int i = 0; i < array.length(); i++) {
 
                         JSONObject jsonObject = array.getJSONObject(i);
 
 
                         int articleId = jsonObject.getInt("id");
-                      BlogItem blogItem =  new BlogItem(articleId, jsonObject.getString("title"),
-                                jsonObject.getString("description"),jsonObject.getString("image_url") );
+                        BlogItem blogItem = new BlogItem(articleId, jsonObject.getString("title"),
+                                jsonObject.getString("description"), jsonObject.getString("image_url"));
                         articleIdsList.add(articleId);
                         blogItemArrayList.add(blogItem);
 
                     }
                 } catch (JSONException e) {
-                    e.printStackTrace();
+
+                    Toast.makeText(BlogListScreenActivity.this, "There is a problem with fetched results. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
                 }
 
             }
         }
     }
 
-    private void showEnableInternetDialog(){
+    private void showEnableInternetDialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Connect to wifi, mobile data or quit")

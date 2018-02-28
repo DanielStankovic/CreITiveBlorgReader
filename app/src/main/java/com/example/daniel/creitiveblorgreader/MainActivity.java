@@ -12,8 +12,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
+
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -25,16 +29,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
-    EditText emailEditText;
-    EditText passwordEditText;
-    String email;
-    String password;
-    HttpURLConnection httpURLConnection;
-    SharedPreferences settings;
-    String token;
+    private EditText emailEditText;
+    private EditText passwordEditText;
+    private String email;
+    private String password;
+    private HttpURLConnection httpURLConnection;
+    private SharedPreferences settings;
+    private String token;
 
 
     @Override
@@ -43,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         settings = this.getSharedPreferences("com.example.daniel.creitiveblorgreader", Context.MODE_PRIVATE);
         token = settings.getString("token", "");
-        if(token.matches("eaf57e2cb62755db708144c93b1f319dcda89871")){
+        if (token.matches("eaf57e2cb62755db708144c93b1f319dcda89871")) {
             showBlogListScreenActivity();
             this.finish();
 
@@ -59,48 +64,50 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void loginUser(View view){
+    public void loginUser(View view) {
 
-         email = emailEditText.getText().toString();
-        if(!isEmailValid(email)){
+        email = emailEditText.getText().toString();
+        if (!isEmailValid(email)) {
             emailEditText.setError("Invalid Email");
         }
-         password = passwordEditText.getText().toString();
+        password = passwordEditText.getText().toString();
 
-        if(!isPasswordValid(password)){
+        if (!isPasswordValid(password)) {
             passwordEditText.setError("Invalid password. Password should be longer than 6 characters");
         }
 
-        if(email.matches("candidate@creitive.com") && password.equals("1234567")) {
+        if (email.matches("candidate@creitive.com") && password.equals("1234567")) {
 
-           if(InternetStatus.getInstance(getApplicationContext()).isOnline()){
-               new SendPostRequest().execute();
-           }else{
-              showEnableInternetDialog();
-           }
+            if (InternetStatus.getInstance(getApplicationContext()).isOnline()) {
+                new SendPostRequest().execute();
+            } else {
+                showEnableInternetDialog();
+            }
+        } else {
+            Toast.makeText(this, "The user is not registered", Toast.LENGTH_SHORT).show();
         }
 
 
     }
 
-    private boolean isEmailValid(String email){
+    private boolean isEmailValid(String email) {
 
-        String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]+$";
+        String expression = "^[\\w.-]+@([\\w\\-]+\\.)+[A-Z]+$";
         Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
 
     }
 
-    private boolean isPasswordValid(String password){
+    private boolean isPasswordValid(String password) {
 
         return password != null && password.length() > 6;
     }
 
-    private void showEnableInternetDialog(){
+    private void showEnableInternetDialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Connect to wifi, mobile data or quit")
+        builder.setMessage("You are not connected to the Internet. Connect to wifi, mobile data or quit")
                 .setCancelable(false)
                 .setNegativeButton("Connect to mobile data", new DialogInterface.OnClickListener() {
                     @Override
@@ -123,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public class SendPostRequest extends AsyncTask<String, Void, String>{
+    public class SendPostRequest extends AsyncTask<String, Void, String> {
 
 
         @Override
@@ -136,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
                 postParameters.put("email", email);
                 postParameters.put("password", password);
 
-                httpURLConnection =(HttpURLConnection) url.openConnection();
+                httpURLConnection = (HttpURLConnection) url.openConnection();
                 httpURLConnection.setRequestProperty("Accept", "application/json");
                 httpURLConnection.setRequestProperty("Content-Type", "application/json");
                 httpURLConnection.setRequestProperty("Host", "blogsdemo.creitiveapps.com");
@@ -160,13 +167,13 @@ public class MainActivity extends AppCompatActivity {
 
                 if (responseCode == HttpsURLConnection.HTTP_OK) {
 
-                    BufferedReader in=new BufferedReader(
+                    BufferedReader in = new BufferedReader(
                             new InputStreamReader(
                                     httpURLConnection.getInputStream()));
                     StringBuilder sb = new StringBuilder("");
                     String line;
 
-                    while((line = in.readLine()) != null) {
+                    while ((line = in.readLine()) != null) {
 
                         sb.append(line);
 
@@ -176,24 +183,25 @@ public class MainActivity extends AppCompatActivity {
 
                     return sb.toString();
 
-                }
-                else {
+                } else {
 
-                    return "false : "+responseCode;
+                    return "Error code: " + responseCode;
 
                 }
 
 
             } catch (MalformedURLException e) {
 
-                e.printStackTrace();
+                Toast.makeText(MainActivity.this, "There is a problem with requested URL. " + e.getMessage(), Toast.LENGTH_SHORT).show();
 
             } catch (JSONException e) {
 
-                e.printStackTrace();
+                Toast.makeText(MainActivity.this, "There is a problem with fetched results. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
             } catch (IOException e) {
 
-                e.printStackTrace();
+                Toast.makeText(MainActivity.this, "There is a problem. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
             } finally {
                 httpURLConnection.disconnect();
             }
@@ -208,9 +216,9 @@ public class MainActivity extends AppCompatActivity {
             try {
 
                 JSONObject jsonObject = new JSONObject(result);
-                 token = jsonObject.getString("token");
+                token = jsonObject.getString("token");
 
-                if(token.matches("eaf57e2cb62755db708144c93b1f319dcda89871")) {
+                if (token.matches("eaf57e2cb62755db708144c93b1f319dcda89871")) {
                     settings.edit().putString("token", token).apply();
                     showBlogListScreenActivity();
 
@@ -218,7 +226,8 @@ public class MainActivity extends AppCompatActivity {
 
             } catch (JSONException e) {
 
-                e.printStackTrace();
+                Toast.makeText(MainActivity.this, "There is a problem with fetched results. " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
 
             }
 
@@ -226,7 +235,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void showBlogListScreenActivity(){
+    private void showBlogListScreenActivity() {
 
         Intent intent = new Intent(this, BlogListScreenActivity.class);
         intent.putExtra("token_value", token);
@@ -234,3 +243,4 @@ public class MainActivity extends AppCompatActivity {
 
     }
 }
+

@@ -1,10 +1,6 @@
 package com.example.daniel.creitiveblorgreader;
 
 
-
-
-
-
 public class BlogItem {
 
     private int id;
@@ -41,12 +37,9 @@ public class BlogItem {
     }
 
 
-
     public String getImageUri() {
         return imageUri;
     }
-
-
 
 
 }
