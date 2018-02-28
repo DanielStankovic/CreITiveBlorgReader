@@ -1,35 +1,40 @@
 package com.example.daniel.creitiveblorgreader;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
+
+import android.provider.Settings;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.ArrayAdapter;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Base64;
+import java.util.List;
 
 public class BlogListScreenActivity extends AppCompatActivity {
 
 
     private HttpURLConnection httpURLConnection;
-    private ArrayList<BlogItem> blogItemArrayList;
+    private List<BlogItem> blogItemArrayList;
+    private List<Integer> articleIdsList;
     ListView listView;
+    String token;
+    DownloadTask task;
+    boolean connectedThroughDialog = false;
 
 
     @Override
@@ -37,27 +42,59 @@ public class BlogListScreenActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blog_list_screen);
 
+
+
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setTitle("Blog List");
         }
         blogItemArrayList = new ArrayList<>();
+        articleIdsList = new ArrayList<>();
          listView = findViewById(R.id.listView);
 
+         if(!InternetStatus.getInstance(getApplicationContext()).isOnline()){
+             showEnableInternetDialog();
+         } else {
+             task = new DownloadTask();
+             task.execute();
+         }
 
-        new DownloadTask().execute();
+
+        BlogItemAdapter adapter = new BlogItemAdapter(BlogListScreenActivity.this, blogItemArrayList, R.layout.list_item_layout);
+        listView.setAdapter(adapter);
 
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
 
+                    Intent intent = new Intent(BlogListScreenActivity.this, DisplayBlogScreen.class);
+                    intent.putExtra("token_value", token);
+                    intent.putExtra("article_id", articleIdsList.get(position));
+                    startActivity(intent);
 
-
-
+            }
+        });
 
 
     }
 
-    public class DownloadTask extends AsyncTask<String, Void, String>{
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(InternetStatus.getInstance(getApplicationContext()).isOnline() && connectedThroughDialog) {
+
+            if(task != null){
+                task.cancel(true);
+            }
+            connectedThroughDialog = false;
+            this.recreate();
+
+        }
+    }
+
+    private class DownloadTask extends AsyncTask<String, Void, String>{
 
 
         @Override
@@ -66,7 +103,7 @@ public class BlogListScreenActivity extends AppCompatActivity {
             try {
 
                 Intent intent = getIntent();
-                String token = intent.getStringExtra("token_value");
+                token = intent.getStringExtra("token_value");
                 URL url = new URL("http://blogsdemo.creitiveapps.com/blogs");
 
                 httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -82,7 +119,7 @@ public class BlogListScreenActivity extends AppCompatActivity {
                             new InputStreamReader(
                                     httpURLConnection.getInputStream()));
                     StringBuilder sb = new StringBuilder("");
-                    String line = "";
+                    String line;
 
                     while ((line = in.readLine()) != null) {
                         sb.append(line);
@@ -116,7 +153,6 @@ public class BlogListScreenActivity extends AppCompatActivity {
 
             if(result != null){
 
-
                 try {
 
                     JSONArray array = new JSONArray(result);
@@ -124,23 +160,47 @@ public class BlogListScreenActivity extends AppCompatActivity {
 
                         JSONObject jsonObject = array.getJSONObject(i);
 
-                      BlogItem blogItem =  new BlogItem(jsonObject.getInt("id"), jsonObject.getString("title"),
+
+                        int articleId = jsonObject.getInt("id");
+                      BlogItem blogItem =  new BlogItem(articleId, jsonObject.getString("title"),
                                 jsonObject.getString("description"),jsonObject.getString("image_url") );
+                        articleIdsList.add(articleId);
                         blogItemArrayList.add(blogItem);
 
                     }
-                    BlogItemAdapter adapter = new BlogItemAdapter(BlogListScreenActivity.this, blogItemArrayList, R.layout.list_item_layout);
-                    listView.setAdapter(adapter);
-
-
-
-
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
             }
         }
+    }
+
+    private void showEnableInternetDialog(){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Connect to wifi, mobile data or quit")
+                .setCancelable(false)
+                .setNegativeButton("Connect to mobile data", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startActivity(new Intent(Settings.ACTION_DATA_ROAMING_SETTINGS));
+                    }
+                })
+                .setPositiveButton("Connect to WIFI", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
+                    }
+                })
+                .setNeutralButton("Quit", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        finish();
+                    }
+                });
+        connectedThroughDialog = true;
+        AlertDialog alert = builder.create();
+        alert.show();
+
     }
 
 }

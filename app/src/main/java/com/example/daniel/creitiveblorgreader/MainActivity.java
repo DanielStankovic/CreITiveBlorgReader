@@ -10,14 +10,10 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -29,7 +25,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
@@ -78,8 +73,10 @@ public class MainActivity extends AppCompatActivity {
 
         if(email.matches("candidate@creitive.com") && password.equals("1234567")) {
 
-           if(checkInternetConnection()){
+           if(InternetStatus.getInstance(getApplicationContext()).isOnline()){
                new SendPostRequest().execute();
+           }else{
+              showEnableInternetDialog();
            }
         }
 
@@ -98,19 +95,6 @@ public class MainActivity extends AppCompatActivity {
     private boolean isPasswordValid(String password){
 
         return password != null && password.length() > 6;
-    }
-
-    private boolean checkInternetConnection(){
-
-        if(InternetStatus.getInstance(getApplicationContext()).isOnline()){
-            return true;
-
-        }else{
-
-            showEnableInternetDialog();
-            return false;
-        }
-
     }
 
     private void showEnableInternetDialog(){
@@ -180,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                             new InputStreamReader(
                                     httpURLConnection.getInputStream()));
                     StringBuilder sb = new StringBuilder("");
-                    String line="";
+                    String line;
 
                     while((line = in.readLine()) != null) {
 
@@ -190,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
                     in.close();
 
-                    return sb.toString(); //ovde vraca TOKEN
+                    return sb.toString();
 
                 }
                 else {
